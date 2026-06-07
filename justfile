@@ -15,7 +15,7 @@ sink: build
     ./target/release/fast-udp sink --bind 0.0.0.0:9000
 
 bench-std-send-to: build
-    if [[ "{{local_sink}}" == "true" ]]; then taskset -c {{sink_cpu}} ./target/release/fast-udp sink --bind {{target}} & sink_pid=$!; trap 'kill "$sink_pid" 2>/dev/null || true' EXIT; sleep 0.2; fi; \
+    if [[ "{{local_sink}}" == "true" ]]; then taskset -c {{sink_cpu}} ./target/release/fast-udp sink --bind {{target}} >/dev/null 2>&1 & sink_pid=$!; trap 'kill "$sink_pid" 2>/dev/null || true' EXIT; sleep 0.2; fi; \
     hyperfine \
       --warmup 3 \
       --runs 20 \
@@ -24,7 +24,7 @@ bench-std-send-to: build
       './target/release/fast-udp emit --implementation std-send-to --cpus {{cpus}} --packets {{packets}} --payload-size {{payload_size}} --target {{target}}'
 
 bench-std-connected: build
-    if [[ "{{local_sink}}" == "true" ]]; then taskset -c {{sink_cpu}} ./target/release/fast-udp sink --bind {{target}} & sink_pid=$!; trap 'kill "$sink_pid" 2>/dev/null || true' EXIT; sleep 0.2; fi; \
+    if [[ "{{local_sink}}" == "true" ]]; then taskset -c {{sink_cpu}} ./target/release/fast-udp sink --bind {{target}} >/dev/null 2>&1 & sink_pid=$!; trap 'kill "$sink_pid" 2>/dev/null || true' EXIT; sleep 0.2; fi; \
     hyperfine \
       --warmup 3 \
       --runs 20 \
@@ -33,7 +33,7 @@ bench-std-connected: build
       './target/release/fast-udp emit --implementation std-connected --cpus {{cpus}} --packets {{packets}} --payload-size {{payload_size}} --target {{target}}'
 
 bench-libc-send: build
-    if [[ "{{local_sink}}" == "true" ]]; then taskset -c {{sink_cpu}} ./target/release/fast-udp sink --bind {{target}} & sink_pid=$!; trap 'kill "$sink_pid" 2>/dev/null || true' EXIT; sleep 0.2; fi; \
+    if [[ "{{local_sink}}" == "true" ]]; then taskset -c {{sink_cpu}} ./target/release/fast-udp sink --bind {{target}} >/dev/null 2>&1 & sink_pid=$!; trap 'kill "$sink_pid" 2>/dev/null || true' EXIT; sleep 0.2; fi; \
     hyperfine \
       --warmup 3 \
       --runs 20 \
@@ -42,7 +42,7 @@ bench-libc-send: build
       './target/release/fast-udp emit --implementation libc-send --cpus {{cpus}} --packets {{packets}} --payload-size {{payload_size}} --target {{target}}'
 
 bench-libc-sendmmsg: build
-    if [[ "{{local_sink}}" == "true" ]]; then taskset -c {{sink_cpu}} ./target/release/fast-udp sink --bind {{target}} & sink_pid=$!; trap 'kill "$sink_pid" 2>/dev/null || true' EXIT; sleep 0.2; fi; \
+    if [[ "{{local_sink}}" == "true" ]]; then taskset -c {{sink_cpu}} ./target/release/fast-udp sink --bind {{target}} >/dev/null 2>&1 & sink_pid=$!; trap 'kill "$sink_pid" 2>/dev/null || true' EXIT; sleep 0.2; fi; \
     hyperfine \
       --warmup 3 \
       --runs 20 \
@@ -51,7 +51,7 @@ bench-libc-sendmmsg: build
       './target/release/fast-udp emit --implementation libc-sendmmsg --cpus {{cpus}} --batch-size {{batch_size}} --packets {{packets}} --payload-size {{payload_size}} --target {{target}}'
 
 bench-libc-sendmmsg-reuse: build
-    if [[ "{{local_sink}}" == "true" ]]; then taskset -c {{sink_cpu}} ./target/release/fast-udp sink --bind {{target}} & sink_pid=$!; trap 'kill "$sink_pid" 2>/dev/null || true' EXIT; sleep 0.2; fi; \
+    if [[ "{{local_sink}}" == "true" ]]; then taskset -c {{sink_cpu}} ./target/release/fast-udp sink --bind {{target}} >/dev/null 2>&1 & sink_pid=$!; trap 'kill "$sink_pid" 2>/dev/null || true' EXIT; sleep 0.2; fi; \
     hyperfine \
       --warmup 3 \
       --runs 20 \
@@ -60,7 +60,7 @@ bench-libc-sendmmsg-reuse: build
       './target/release/fast-udp emit --implementation libc-sendmmsg-reuse --cpus {{cpus}} --batch-size {{batch_size}} --packets {{packets}} --payload-size {{payload_size}} --target {{target}}'
 
 bench-libc-udp-gso: build
-    if [[ "{{local_sink}}" == "true" ]]; then taskset -c {{sink_cpu}} ./target/release/fast-udp sink --bind {{target}} & sink_pid=$!; trap 'kill "$sink_pid" 2>/dev/null || true' EXIT; sleep 0.2; fi; \
+    if [[ "{{local_sink}}" == "true" ]]; then taskset -c {{sink_cpu}} ./target/release/fast-udp sink --bind {{target}} >/dev/null 2>&1 & sink_pid=$!; trap 'kill "$sink_pid" 2>/dev/null || true' EXIT; sleep 0.2; fi; \
     hyperfine \
       --warmup 3 \
       --runs 20 \
@@ -69,7 +69,7 @@ bench-libc-udp-gso: build
       './target/release/fast-udp emit --implementation libc-udp-gso --cpus {{cpus}} --batch-size {{batch_size}} --packets {{packets}} --payload-size {{payload_size}} --target {{target}}'
 
 bench-libc-udp-gso-sendmmsg-reuse: build
-    if [[ "{{local_sink}}" == "true" ]]; then taskset -c {{sink_cpu}} ./target/release/fast-udp sink --bind {{target}} & sink_pid=$!; trap 'kill "$sink_pid" 2>/dev/null || true' EXIT; sleep 0.2; fi; \
+    if [[ "{{local_sink}}" == "true" ]]; then taskset -c {{sink_cpu}} ./target/release/fast-udp sink --bind {{target}} >/dev/null 2>&1 & sink_pid=$!; trap 'kill "$sink_pid" 2>/dev/null || true' EXIT; sleep 0.2; fi; \
     hyperfine \
       --warmup 3 \
       --runs 20 \
@@ -78,7 +78,7 @@ bench-libc-udp-gso-sendmmsg-reuse: build
       './target/release/fast-udp emit --implementation libc-udp-gso-sendmmsg-reuse --cpus {{cpus}} --batch-size {{batch_size}} --packets {{packets}} --payload-size {{payload_size}} --target {{target}}'
 
 bench-io-uring: build
-    if [[ "{{local_sink}}" == "true" ]]; then taskset -c {{sink_cpu}} ./target/release/fast-udp sink --bind {{target}} & sink_pid=$!; trap 'kill "$sink_pid" 2>/dev/null || true' EXIT; sleep 0.2; fi; \
+    if [[ "{{local_sink}}" == "true" ]]; then taskset -c {{sink_cpu}} ./target/release/fast-udp sink --bind {{target}} >/dev/null 2>&1 & sink_pid=$!; trap 'kill "$sink_pid" 2>/dev/null || true' EXIT; sleep 0.2; fi; \
     hyperfine \
       --warmup 3 \
       --runs 20 \
