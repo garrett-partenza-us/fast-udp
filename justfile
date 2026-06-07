@@ -11,6 +11,9 @@ local_sink := "true"
 build:
     cargo build --release
 
+sink: build
+    ./target/release/fast-udp sink --bind 0.0.0.0:9000
+
 bench-std-send-to: build
     if [[ "{{local_sink}}" == "true" ]]; then taskset -c {{sink_cpu}} ./target/release/fast-udp sink --bind {{target}} & sink_pid=$!; trap 'kill "$sink_pid" 2>/dev/null || true' EXIT; sleep 0.2; fi; \
     hyperfine \
