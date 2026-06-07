@@ -3,10 +3,15 @@ use std::net::SocketAddr;
 use anyhow::Result;
 use clap::Parser;
 use fast_udp::emitters::{
-    UdpEmitter, io_uring::IoUringEmitter, libc_send::LibcSendEmitter,
-    libc_sendmmsg::LibcSendmmsgEmitter, libc_sendmmsg_reuse::LibcSendmmsgReuseEmitter,
-    libc_udp_gso::LibcUdpGsoEmitter, libc_udp_gso_sendmmsg_reuse::LibcUdpGsoSendmmsgReuseEmitter,
-    pin_current_thread_to_cpus, std_connected::StdConnectedEmitter, std_send_to::StdSendToEmitter,
+    UdpEmitter, pin_current_thread_to_cpus, std_connected::StdConnectedEmitter,
+    std_send_to::StdSendToEmitter,
+};
+
+#[cfg(target_os = "linux")]
+use fast_udp::emitters::{
+    io_uring::IoUringEmitter, libc_send::LibcSendEmitter, libc_sendmmsg::LibcSendmmsgEmitter,
+    libc_sendmmsg_reuse::LibcSendmmsgReuseEmitter, libc_udp_gso::LibcUdpGsoEmitter,
+    libc_udp_gso_sendmmsg_reuse::LibcUdpGsoSendmmsgReuseEmitter,
 };
 
 #[derive(clap::Parser)]
@@ -46,11 +51,17 @@ enum Command {
 enum Implementation {
     StdSendTo,
     StdConnected,
+    #[cfg(target_os = "linux")]
     LibcSend,
+    #[cfg(target_os = "linux")]
     LibcSendmmsg,
+    #[cfg(target_os = "linux")]
     LibcSendmmsgReuse,
+    #[cfg(target_os = "linux")]
     LibcUdpGso,
+    #[cfg(target_os = "linux")]
     LibcUdpGsoSendmmsgReuse,
+    #[cfg(target_os = "linux")]
     IoUring,
 }
 
@@ -74,19 +85,25 @@ fn main() -> Result<()> {
             let mut emitter: Box<dyn UdpEmitter> = match implementation {
                 Implementation::StdSendTo => Box::new(StdSendToEmitter::new(target)?),
                 Implementation::StdConnected => Box::new(StdConnectedEmitter::new(target)?),
+                #[cfg(target_os = "linux")]
                 Implementation::LibcSend => Box::new(LibcSendEmitter::new(target)?),
+                #[cfg(target_os = "linux")]
                 Implementation::LibcSendmmsg => {
                     Box::new(LibcSendmmsgEmitter::new(target, batch_size)?)
                 }
+                #[cfg(target_os = "linux")]
                 Implementation::LibcSendmmsgReuse => {
                     Box::new(LibcSendmmsgReuseEmitter::new(target, batch_size)?)
                 }
+                #[cfg(target_os = "linux")]
                 Implementation::LibcUdpGso => {
                     Box::new(LibcUdpGsoEmitter::new(target, batch_size, payload_size)?)
                 }
+                #[cfg(target_os = "linux")]
                 Implementation::LibcUdpGsoSendmmsgReuse => Box::new(
                     LibcUdpGsoSendmmsgReuseEmitter::new(target, batch_size, payload_size)?,
                 ),
+                #[cfg(target_os = "linux")]
                 Implementation::IoUring => {
                     Box::new(IoUringEmitter::new(target, batch_size, payload_size)?)
                 }

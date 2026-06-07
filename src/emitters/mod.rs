@@ -1,8 +1,14 @@
+#[cfg(target_os = "linux")]
 pub mod io_uring;
+#[cfg(target_os = "linux")]
 pub mod libc_send;
+#[cfg(target_os = "linux")]
 pub mod libc_sendmmsg;
+#[cfg(target_os = "linux")]
 pub mod libc_sendmmsg_reuse;
+#[cfg(target_os = "linux")]
 pub mod libc_udp_gso;
+#[cfg(target_os = "linux")]
 pub mod libc_udp_gso_sendmmsg_reuse;
 pub mod std_connected;
 pub mod std_send_to;
@@ -41,4 +47,13 @@ pub fn pin_current_thread_to_cpus(cpus: &[usize]) -> Result<()> {
     }
 
     Ok(())
+}
+
+#[cfg(not(target_os = "linux"))]
+pub fn pin_current_thread_to_cpus(cpus: &[usize]) -> Result<()> {
+    if cpus.is_empty() {
+        Ok(())
+    } else {
+        bail!("CPU affinity is only supported on Linux")
+    }
 }
