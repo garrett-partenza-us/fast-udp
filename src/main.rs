@@ -1,12 +1,12 @@
-use std::net::{SocketAddr};
+use std::net::SocketAddr;
 
 use anyhow::Result;
 use clap::Parser;
 use fast_udp::emitters::{
-    std_connected::StdConnectedEmitter,
-    std_connected_pin::StdConnectedPinEmitter,
-    std_send_to::StdSendToEmitter,
-    UdpEmitter,
+    UdpEmitter, io_uring::IoUringEmitter, libc_send::LibcSendEmitter,
+    libc_sendmmsg::LibcSendmmsgEmitter, libc_sendmmsg_reuse::LibcSendmmsgReuseEmitter,
+    libc_udp_gso::LibcUdpGsoEmitter, libc_udp_gso_sendmmsg_reuse::LibcUdpGsoSendmmsgReuseEmitter,
+    pin_current_thread_to_cpus, std_connected::StdConnectedEmitter, std_send_to::StdSendToEmitter,
 };
 
 #[derive(clap::Parser)]
@@ -30,20 +30,28 @@ enum Command {
         #[arg(long, default_value = "127.0.0.1:9000")]
         target: String,
 
-        #[arg(long, default_value_t = 0)]
-        cpu: usize,
+        #[arg(long, value_delimiter = ',')]
+        cpus: Vec<usize>,
+
+        #[arg(long, default_value_t = 128)]
+        batch_size: usize,
     },
     Sink {
         #[arg(long, default_value = "127.0.0.1:9000")]
         bind: String,
-    }
+    },
 }
 
 #[derive(Clone, Copy, Debug, clap::ValueEnum)]
 enum Implementation {
     StdSendTo,
     StdConnected,
-    StdConnectedPin,
+    LibcSend,
+    LibcSendmmsg,
+    LibcSendmmsgReuse,
+    LibcUdpGso,
+    LibcUdpGsoSendmmsgReuse,
+    IoUring,
 }
 
 fn main() -> Result<()> {
@@ -55,16 +63,32 @@ fn main() -> Result<()> {
             packets,
             payload_size,
             target,
-            cpu
+            cpus,
+            batch_size,
         } => {
+            pin_current_thread_to_cpus(&cpus)?;
+
             let target: SocketAddr = target.parse()?;
             let payload = vec![0_u8; payload_size];
 
             let mut emitter: Box<dyn UdpEmitter> = match implementation {
                 Implementation::StdSendTo => Box::new(StdSendToEmitter::new(target)?),
                 Implementation::StdConnected => Box::new(StdConnectedEmitter::new(target)?),
-                Implementation::StdConnectedPin => {
-                    Box::new(StdConnectedPinEmitter::new(target, cpu)?)
+                Implementation::LibcSend => Box::new(LibcSendEmitter::new(target)?),
+                Implementation::LibcSendmmsg => {
+                    Box::new(LibcSendmmsgEmitter::new(target, batch_size)?)
+                }
+                Implementation::LibcSendmmsgReuse => {
+                    Box::new(LibcSendmmsgReuseEmitter::new(target, batch_size)?)
+                }
+                Implementation::LibcUdpGso => {
+                    Box::new(LibcUdpGsoEmitter::new(target, batch_size, payload_size)?)
+                }
+                Implementation::LibcUdpGsoSendmmsgReuse => Box::new(
+                    LibcUdpGsoSendmmsgReuseEmitter::new(target, batch_size, payload_size)?,
+                ),
+                Implementation::IoUring => {
+                    Box::new(IoUringEmitter::new(target, batch_size, payload_size)?)
                 }
             };
 

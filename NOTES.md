@@ -21,3 +21,7 @@ GRUB_CMDLINE_LINUX_DEFAULT
     irqaffinity=0-3,8-19
     intel_idle.max_cstate=1
     processor.max_cstate=1
+
+
+sudo update-grub
+sudo reboot

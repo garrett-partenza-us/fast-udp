@@ -5,7 +5,7 @@ use crate::emitters::UdpEmitter;
 
 pub struct StdSendToEmitter {
     socket: UdpSocket,
-    target: SocketAddr
+    target: SocketAddr,
 }
 
 impl StdSendToEmitter {
